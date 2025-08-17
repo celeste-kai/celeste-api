@@ -3,8 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from celeste_core.types.image import ImageArtifact
-from celeste_image_generation.providers.google import GoogleImageGenerator
-from celeste_image_generation.providers.openai import OpenAIImageGenerator
+from celeste_image_generation import create_image_generator
 
 
 router = APIRouter(prefix="/v1", tags=["images"])
@@ -17,10 +16,7 @@ async def generate_images(payload: dict):
     prompt = payload["prompt"]
     options = payload.get("options", {})
 
-    if provider == "google":
-        client = GoogleImageGenerator(model=model or "imagen-3.0-generate-002")
-    else:
-        client = OpenAIImageGenerator(model=model or "dall-e-3")
+    client = create_image_generator(provider, model=model)
 
     images: list[ImageArtifact] = await client.generate_image(prompt, **options)
     return {

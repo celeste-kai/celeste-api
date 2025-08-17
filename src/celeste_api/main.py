@@ -1,23 +1,15 @@
 from __future__ import annotations
 
 import os
-from importlib.metadata import PackageNotFoundError, version
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from celeste_api.routes import discovery
-from celeste_api.routes import text
+from celeste_api.routes import discovery, text, images, videos
+from celeste_api import __version__
 
 
-def _get_version() -> str:
-    try:
-        return version("celeste-api")
-    except PackageNotFoundError:
-        return "0.1.0"
-
-
-app = FastAPI(title="Celeste API", version=_get_version())
+app = FastAPI(title="Celeste API", version=__version__)
 
 
 origins_raw = os.getenv("CORS_ALLOW_ORIGINS", "*")
@@ -34,7 +26,7 @@ app.add_middleware(
 
 @app.get("/v1/health")
 async def health() -> dict[str, str]:
-    return {"status": "ok", "version": _get_version()}
+    return {"status": "ok", "version": __version__}
 
 
 @app.get("/")
@@ -45,3 +37,5 @@ async def root() -> dict[str, str]:
 # Routers
 app.include_router(discovery.router)
 app.include_router(text.router)
+app.include_router(images.router)
+app.include_router(videos.router)
