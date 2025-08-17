@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
-[![Interface](https://img.shields.io/badge/Interface-REST_+_SSE-purple?style=for-the-badge&logo=fastapi&logoColor=white)](#-api-overview)
+[![Interface](https://img.shields.io/badge/Interface-REST_+_Streaming_(NDJSON)-purple?style=for-the-badge&logo=fastapi&logoColor=white)](#-api-overview)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-Available-85ea2d?style=for-the-badge&logo=openapi-initiative&logoColor=white)](/docs)
 
 [![Try API](https://img.shields.io/badge/🚀_Try_API-OpenAPI_UI-0ea5e9?style=for-the-badge)](/docs)
@@ -22,7 +22,7 @@
     <tr>
       <td align="center">🔌<br><b>Unified Gateway</b><br>Single HTTP surface for all providers</td>
       <td align="center">🔐<br><b>Secure Keys</b><br>Secrets remain server‑side</td>
-      <td align="center">🌊<br><b>Streaming</b><br>SSE token-by-token responses</td>
+      <td align="center">🌊<br><b>Streaming</b><br>NDJSON token-by-token responses</td>
       <td align="center">📦<br><b>Uploads</b><br>Images, Audio, PDFs via multipart</td>
     </tr>
   </table>
@@ -106,7 +106,7 @@ cp .env.example .env
   - `GET /v1/models?capability=&provider=` — capability/provider‑filtered models (from registry)
 - Text
   - `POST /v1/text/generate` — JSON body, returns `AIResponse`
-  - `GET /v1/text/stream` — SSE stream of tokens
+  - `POST /v1/text/stream` — NDJSON stream of tokens
 - Images
   - `POST /v1/images/generate` — JSON body
   - `POST /v1/images/edit` — multipart (image + prompt)
@@ -117,19 +117,15 @@ cp .env.example .env
 - Embeddings
   - `POST /v1/embeddings/generate` — JSON (single or batch)
 
-## 🌊 Streaming (SSE)
+## 🌊 Streaming (NDJSON)
 
-- Event types: `delta`, `final`, `error` (usage events temporarily removed)
-- Message shape (example):
+- Content type: `application/x-ndjson`
+- Each line is a JSON object; when the stream ends, the connection closes
+- Chunk shape (example):
 
-```text
-event: delta
-data: {"content":"Hello"}
-
-# usage event removed for now
-
-event: final
-data: {"content":"Hello world","is_final":true}
+```json
+{"content":"Hello","provider":"openai","model":"gpt-4o-mini","metadata":{"is_stream_chunk":true}}
+{"content":" world","provider":"openai","model":"gpt-4o-mini","metadata":{"is_stream_chunk":true}}
 ```
 
 ## 💻 Usage Examples
@@ -146,15 +142,19 @@ curl -X POST http://localhost:8000/v1/text/generate \
   -d '{"provider":"openai","model":"gpt-4o-mini","prompt":"Write a haiku about the ocean"}'
 ```
 
-### Streaming (SSE)
+### Streaming (NDJSON)
 ```bash
-curl -N "http://localhost:8000/v1/text/stream?provider=openai&model=gpt-4o-mini&prompt=Hello"
+curl -N \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/x-ndjson' \
+  -d '{"provider":"openai","model":"gpt-4o-mini","prompt":"Hello"}' \
+  http://localhost:8000/v1/text/stream
 ```
 
 ## 🗺️ Roadmap
 
 - [ ] Implement v1 endpoints for all capabilities
-- [ ] SSE streaming for text/audio/doc
+- [ ] Streaming (NDJSON) for text/audio/doc
 - [ ] Unified error envelope and usage reporting
 - [ ] OpenAPI client generation for `celeste-ui`
 - [ ] Auth (optional) and rate limiting
