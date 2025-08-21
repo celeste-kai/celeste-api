@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import base64
-from fastapi import APIRouter
 
 from celeste_core.types.image import ImageArtifact
-from celeste_image_generation import create_image_generator
 from celeste_image_edit import create_image_editor
-
+from celeste_image_generation import create_image_generator
+from fastapi import APIRouter
 
 router = APIRouter(prefix="/v1", tags=["images"])
 
