@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from celeste_client import create_client
-from fastapi import APIRouter
-from fastapi.responses import StreamingResponse
 import json
 
+from celeste_client import create_client
 from celeste_core import Capability
+from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/v1", tags=["text"])
 

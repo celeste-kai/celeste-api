@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from typing import List
 
-from fastapi import APIRouter, Query
-
 from celeste_core.enums.capability import Capability
 from celeste_core.enums.providers import Provider
 from celeste_core.models.registry import list_models
-
+from fastapi import APIRouter, Query
 
 router = APIRouter(prefix="/v1", tags=["discovery"])
 
