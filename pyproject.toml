@@ -22,6 +22,7 @@ dependencies = [
   "celeste-image-generation>=0.1.0",
   "celeste-image-edit>=0.1.0",
   "celeste-video-generation>=0.1.0",
+  "celeste-reranking>=0.1.0",
 ]
 
 [tool.ruff]
@@ -39,3 +40,4 @@ celeste-core = { git = "https://github.com/celeste-kai/celeste-core.git" }
 celeste-image-generation = { git = "https://github.com/celeste-kai/celeste-image-generation.git" }
 celeste-image-edit = { git = "https://github.com/celeste-kai/celeste-image-edit.git" }
 celeste-video-generation = { git = "https://github.com/celeste-kai/celeste-video-generation.git" }
+celeste-reranking = { git = "https://github.com/celeste-kai/celeste-reranking.git" }
