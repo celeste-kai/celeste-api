@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from celeste_reranking import create_reranker
 from fastapi import APIRouter
 
 router = APIRouter(prefix="/v1", tags=["rerank"])
@@ -9,6 +8,8 @@ router = APIRouter(prefix="/v1", tags=["rerank"])
 @router.post("/rerank")
 async def rerank_texts(payload: dict):
     """Rerank texts based on relevance to query."""
+    from celeste_reranking import create_reranker  # lazy import
+
     provider = payload["provider"]
     model = payload.get("model")
     query = payload["query"]

@@ -1,0 +1,32 @@
+# Dependencies and environments
+.venv/
+.env
+.env.*
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# VCS and IDE
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# Build artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# Node-related
+node_modules/
+
+# Tests, docs, and misc
+tests/
+docs/
+examples/
+
+# Caches and logs
+*.log
+.cache/

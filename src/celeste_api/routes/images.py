@@ -2,9 +2,6 @@ from __future__ import annotations
 
 import base64
 
-from celeste_core.types.image import ImageArtifact
-from celeste_image_edit import create_image_editor
-from celeste_image_generation import create_image_generator
 from fastapi import APIRouter
 
 router = APIRouter(prefix="/v1", tags=["images"])
@@ -12,6 +9,8 @@ router = APIRouter(prefix="/v1", tags=["images"])
 
 @router.post("/images/generate")
 async def generate_images(payload: dict):
+    from celeste_image_generation import create_image_generator  # lazy import
+
     provider = payload["provider"]
     model = payload.get("model")
     prompt = payload["prompt"]
@@ -19,17 +18,17 @@ async def generate_images(payload: dict):
 
     client = create_image_generator(provider, model=model)
 
-    images: list[ImageArtifact] = await client.generate_image(prompt, **options)
+    images = await client.generate_image(prompt, **options)
     return {
         "images": [
             {
                 "data": (
-                    img.data.decode("latin1")
-                    if isinstance(img.data, (bytes, bytearray))
+                    base64.b64encode(img.data).decode("utf-8")
+                    if getattr(img, "data", None) is not None and isinstance(img.data, (bytes, bytearray))
                     else img.data
                 ),
-                "path": img.path,
-                "metadata": img.metadata,
+                "path": getattr(img, "path", None),
+                "metadata": getattr(img, "metadata", None),
             }
             for img in images
         ]
@@ -39,6 +38,9 @@ async def generate_images(payload: dict):
 @router.post("/images/edit")
 async def edit_image(payload: dict):
     # Parse request data - NO validation, let it fail
+    from celeste_core.types.image import ImageArtifact  # lazy import
+    from celeste_image_edit import create_image_editor  # lazy import
+
     provider = payload["provider"]
     model = payload.get("model")
     prompt = payload["prompt"]

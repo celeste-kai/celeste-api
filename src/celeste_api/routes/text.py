@@ -2,16 +2,27 @@ from __future__ import annotations
 
 import json
 
-from celeste_client import create_client
-from celeste_core import Capability
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/v1", tags=["text"])
 
+try:  # prefer orjson for speed
+    import orjson as _orjson  # type: ignore
+
+    def _dumps(obj) -> str:
+        return _orjson.dumps(obj).decode()
+except Exception:  # fallback to stdlib json
+
+    def _dumps(obj) -> str:
+        return json.dumps(obj, ensure_ascii=False)
+
 
 @router.post("/text/generate")
 async def generate_text(payload: dict):
+    from celeste_client import create_client  # lazy import
+    from celeste_core import Capability  # lazy import
+
     provider = payload["provider"]
     model = payload["model"]
     prompt = payload["prompt"]
@@ -28,8 +39,11 @@ async def generate_text(payload: dict):
 
 @router.post("/text/stream")
 async def stream_text(payload: dict):
+    from celeste_client import create_client  # lazy import
+    from celeste_core import Capability  # lazy import
+
     provider = payload["provider"]
-    model = payload["model"]
+    model = payload.get("model") or payload["model"]
     prompt = payload["prompt"]
 
     client = create_client(provider, model=model, capability=Capability.TEXT_GENERATION)
@@ -45,6 +59,6 @@ async def stream_text(payload: dict):
                 "model": model,
                 "metadata": metadata,
             }
-            yield json.dumps(line, ensure_ascii=False) + "\n"
+            yield _dumps(line) + "\n"
 
     return StreamingResponse(ndjson_generator(), media_type="application/x-ndjson")
