@@ -24,7 +24,7 @@ async def generate_images(payload: dict):
         "images": [
             {
                 "data": (
-                    img.data.decode("latin1")
+                    base64.b64encode(img.data).decode("utf-8")
                     if isinstance(img.data, (bytes, bytearray))
                     else img.data
                 ),
