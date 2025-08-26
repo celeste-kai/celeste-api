@@ -1,0 +1,44 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/celeste/celeste-api:$_IMAGE_TAG', '.']
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/celeste/celeste-api:$_IMAGE_TAG']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'celeste-api'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/celeste/celeste-api:$_IMAGE_TAG'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'PORT=8080,CORS_ALLOW_ORIGINS=https://celeste-ai.co'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/celeste/celeste-api:$_IMAGE_TAG'
+
+substitutions:
+  _IMAGE_TAG: $COMMIT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
