@@ -7,7 +7,7 @@ router = APIRouter(prefix="/v1", tags=["rerank"])
 
 
 @router.post("/rerank")
-async def rerank_texts(payload: dict):
+async def rerank_texts(payload: dict) -> dict:
     """Rerank texts based on relevance to query."""
     provider = payload["provider"]
     model = payload.get("model")

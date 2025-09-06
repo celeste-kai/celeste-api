@@ -11,7 +11,7 @@ router = APIRouter(prefix="/v1", tags=["images"])
 
 
 @router.post("/images/generate")
-async def generate_images(payload: dict):
+async def generate_images(payload: dict) -> dict:
     provider = payload["provider"]
     model = payload.get("model")
     prompt = payload["prompt"]
@@ -24,9 +24,7 @@ async def generate_images(payload: dict):
         "images": [
             {
                 "data": (
-                    base64.b64encode(img.data).decode("utf-8")
-                    if isinstance(img.data, (bytes, bytearray))
-                    else img.data
+                    base64.b64encode(img.data).decode("utf-8") if isinstance(img.data, bytes | bytearray) else img.data
                 ),
                 "path": img.path,
                 "metadata": img.metadata,
@@ -37,7 +35,7 @@ async def generate_images(payload: dict):
 
 
 @router.post("/images/edit")
-async def edit_image(payload: dict):
+async def edit_image(payload: dict) -> dict:
     # Parse request data - NO validation, let it fail
     provider = payload["provider"]
     model = payload.get("model")

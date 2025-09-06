@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from urllib.parse import quote
 
 import httpx
@@ -21,20 +22,22 @@ def _add_api_key_if_needed(url: str) -> str:
 
 
 @router.get("/video/proxy")
-async def proxy_video(url: str = Query(...)):
-    async def stream_video():
+async def proxy_video(url: str = Query(...)) -> StreamingResponse:
+    async def stream_video() -> AsyncGenerator[bytes, None]:
         request_url = _add_api_key_if_needed(url)
-        async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-            async with client.stream("GET", request_url) as response:
-                response.raise_for_status()
-                async for chunk in response.aiter_bytes():
-                    yield chunk
+        async with (
+            httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client,
+            client.stream("GET", request_url) as response,
+        ):
+            response.raise_for_status()
+            async for chunk in response.aiter_bytes():
+                yield chunk
 
     return StreamingResponse(stream_video(), media_type="video/mp4")
 
 
 @router.post("/video/generate")
-async def generate_video(payload: dict):
+async def generate_video(payload: dict) -> dict:
     provider = payload["provider"]
     model = payload.get("model")
     prompt = payload["prompt"]
