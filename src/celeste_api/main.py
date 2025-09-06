@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from celeste_api import __version__
-from celeste_api.routes import discovery, images, rerank, text, videos
+from celeste_api.routes import audio, discovery, images, rerank, text, videos
 
 app = FastAPI(title="Celeste API", version=__version__)
 
@@ -38,4 +38,5 @@ app.include_router(discovery.router)
 app.include_router(text.router)
 app.include_router(images.router)
 app.include_router(videos.router)
+app.include_router(audio.router)
 app.include_router(rerank.router)
