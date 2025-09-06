@@ -35,7 +35,7 @@ async def stream_text(payload: dict) -> StreamingResponse:
 
     client = create_client(provider, model=model, capability=Capability.TEXT_GENERATION)
 
-    async def ndjson_generator() -> AsyncGenerator[str, None]:
+    async def ndjson_generator() -> AsyncGenerator[str]:
         async for chunk in client.stream_generate_content(prompt):
             metadata = chunk.metadata or {}
             if not metadata.get("is_stream_chunk"):

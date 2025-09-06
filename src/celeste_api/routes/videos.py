@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import base64
 from collections.abc import AsyncGenerator
 from urllib.parse import quote
 
 import httpx
 from celeste_core.config.settings import settings
+from celeste_core.types.image import ImageArtifact
 from celeste_core.types.video import VideoArtifact
 from celeste_video_generation import create_video_client
 from fastapi import APIRouter, Query
@@ -23,7 +25,7 @@ def _add_api_key_if_needed(url: str) -> str:
 
 @router.get("/video/proxy")
 async def proxy_video(url: str = Query(...)) -> StreamingResponse:
-    async def stream_video() -> AsyncGenerator[bytes, None]:
+    async def stream_video() -> AsyncGenerator[bytes]:
         request_url = _add_api_key_if_needed(url)
         async with (
             httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client,
@@ -41,7 +43,14 @@ async def generate_video(payload: dict) -> dict:
     provider = payload["provider"]
     model = payload.get("model")
     prompt = payload["prompt"]
+    image_data = payload.get("image")
     options = payload.get("options", {})
+
+    # Prepare image artifact if provided
+    if image_data:
+        # Decode base64 image
+        image_bytes = base64.b64decode(image_data.split(",")[1] if "," in image_data else image_data)
+        options["image"] = ImageArtifact(data=image_bytes)
 
     client = create_video_client(provider, model=model)
     response = await client.generate_content(prompt, **options)
