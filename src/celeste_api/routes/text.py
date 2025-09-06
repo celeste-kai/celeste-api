@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import AsyncGenerator
 
 from celeste_client import create_client
 from celeste_core import Capability
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/v1", tags=["text"])
 
 
 @router.post("/text/generate")
-async def generate_text(payload: dict):
+async def generate_text(payload: dict) -> dict:
     provider = payload["provider"]
     model = payload["model"]
     prompt = payload["prompt"]
@@ -27,14 +28,14 @@ async def generate_text(payload: dict):
 
 
 @router.post("/text/stream")
-async def stream_text(payload: dict):
+async def stream_text(payload: dict) -> StreamingResponse:
     provider = payload["provider"]
     model = payload["model"]
     prompt = payload["prompt"]
 
     client = create_client(provider, model=model, capability=Capability.TEXT_GENERATION)
 
-    async def ndjson_generator():
+    async def ndjson_generator() -> AsyncGenerator[str, None]:
         async for chunk in client.stream_generate_content(prompt):
             metadata = chunk.metadata or {}
             if not metadata.get("is_stream_chunk"):
