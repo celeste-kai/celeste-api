@@ -24,6 +24,7 @@ dependencies = [
   "celeste-video-generation>=0.1.0",
   "celeste-reranking>=0.1.0",
   "celeste-document-intelligence>=0.1.0",
+  "cachetools>=5.5.2",
 ]
 
 [tool.setuptools]

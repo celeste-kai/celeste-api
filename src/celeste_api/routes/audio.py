@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import tempfile
+import uuid
 
+from cachetools import TTLCache
 from celeste_core.types.audio import AudioArtifact
 from celeste_text_to_speech import GoogleTTSClient
 from fastapi import APIRouter, HTTPException
@@ -9,8 +11,9 @@ from fastapi.responses import FileResponse
 
 router = APIRouter(prefix="/v1", tags=["audio"])
 
-# Simple in-memory storage for audio files (in production, use proper storage)
-audio_storage: dict[str, bytes] = {}
+# TTL cache with 1-hour expiry and max 100 items to prevent memory exhaustion
+# In production, use proper object storage (S3, GCS, etc.)
+audio_storage: TTLCache[str, bytes] = TTLCache(maxsize=100, ttl=3600)
 
 
 @router.get("/audio/proxy/{audio_id}")
@@ -40,14 +43,12 @@ async def generate_audio(payload: dict) -> dict:
 
     # For now, we only support Google TTS
     if provider.lower() != "google":
-        raise ValueError(f"Provider {provider} not yet supported for TTS")
+        raise HTTPException(status_code=400, detail=f"Provider {provider} not yet supported for TTS")
 
     client = GoogleTTSClient(model=model)
     audio_artifact: AudioArtifact = await client.generate_speech(text=text, voice_name=voice_name, **options)
 
     # Store audio and return proxy URL (like video does)
-    import uuid
-
     audio_id = str(uuid.uuid4())
     if audio_artifact.data:
         audio_storage[audio_id] = audio_artifact.data
