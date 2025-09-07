@@ -1,12 +1,30 @@
 from __future__ import annotations
 
-import base64
+import tempfile
 
 from celeste_core.types.audio import AudioArtifact
 from celeste_text_to_speech import GoogleTTSClient
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 
 router = APIRouter(prefix="/v1", tags=["audio"])
+
+# Simple in-memory storage for audio files (in production, use proper storage)
+audio_storage: dict[str, bytes] = {}
+
+
+@router.get("/audio/proxy/{audio_id}")
+async def proxy_audio(audio_id: str) -> FileResponse:
+    """Stream audio file."""
+    if audio_id not in audio_storage:
+        raise HTTPException(status_code=404, detail="Audio not found")
+
+    # Write to temp file for streaming
+    with tempfile.NamedTemporaryFile(mode="wb", suffix=".wav", delete=False) as f:
+        f.write(audio_storage[audio_id])
+        temp_path = f.name
+
+    return FileResponse(temp_path, media_type="audio/wav", filename="audio.wav")
 
 
 @router.post("/audio/generate")
@@ -27,12 +45,16 @@ async def generate_audio(payload: dict) -> dict:
     client = GoogleTTSClient(model=model)
     audio_artifact: AudioArtifact = await client.generate_speech(text=text, voice_name=voice_name, **options)
 
-    # Convert audio bytes to base64
-    audio_base64 = base64.b64encode(audio_artifact.data).decode("utf-8") if audio_artifact.data else None
+    # Store audio and return proxy URL (like video does)
+    import uuid
+
+    audio_id = str(uuid.uuid4())
+    if audio_artifact.data:
+        audio_storage[audio_id] = audio_artifact.data
 
     return {
         "audio": {
-            "data": audio_base64,
+            "url": f"/v1/audio/proxy/{audio_id}" if audio_artifact.data else None,
             "format": audio_artifact.format or "wav",
             "sample_rate": audio_artifact.sample_rate,
             "metadata": {
