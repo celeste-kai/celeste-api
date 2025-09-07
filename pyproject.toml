@@ -23,6 +23,8 @@ dependencies = [
   "celeste-image-edit>=0.1.0",
   "celeste-video-generation>=0.1.0",
   "celeste-reranking>=0.1.0",
+  "celeste-document-intelligence>=0.1.0",
+  "cachetools>=5.5.2",
 ]
 
 [tool.setuptools]
@@ -38,6 +40,7 @@ celeste-image-generation = { git = "https://github.com/celeste-kai/celeste-image
 celeste-image-edit = { git = "https://github.com/celeste-kai/celeste-image-edit.git" }
 celeste-video-generation = { git = "https://github.com/celeste-kai/celeste-video-generation.git" }
 celeste-reranking = { git = "https://github.com/celeste-kai/celeste-reranking.git" }
+celeste-document-intelligence = { git = "https://github.com/celeste-kai/celeste-document-intelligence.git" }
 
 [tool.ruff]
 line-length = 120
